@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<title>Конструктор бюджета</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap');
+
+:root{
+  --bg:#15141a;
+  --surface:#1f1e26;
+  --surface-2:#262531;
+  --line:#34323d;
+  --text:#f2efe9;
+  --muted:#9a96a8;
+  --warm:#e8a33d;
+  --warm-dim:#3a2f1f;
+  --cool:#3fb6b0;
+  --cool-dim:#1d3331;
+  --bcast:#d8453b;
+  --bcast-dim:#3a2120;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Inter',system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.app{max-width:1080px;margin:0 auto;padding:18px 18px 36px;}
+
+/* ---------- header ---------- */
+.topbar{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:16px;
+  padding-bottom:16px;
+  border-bottom:1px solid var(--line);
+  margin-bottom:20px;
+  flex-wrap:wrap;
+}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand-mark{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;
+  letter-spacing:.08em;
+  color:var(--bcast);
+  border:1px solid var(--bcast);
+  padding:3px 7px;
+  border-radius:3px;
+  animation:blink 2.4s ease-in-out infinite;
+}
+@keyframes blink{0%,55%,100%{opacity:1;}28%{opacity:.35;}}
+.brand h1{
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:22px;
+  letter-spacing:.02em;
+  margin:0;
+  text-transform:uppercase;
+}
+.tabs{display:flex;gap:6px;background:var(--surface);padding:4px;border-radius:8px;}
+.tab{
+  font-family:'Oswald',sans-serif;
+  font-size:13px;
+  letter-spacing:.03em;
+  text-transform:uppercase;
+  background:transparent;
+  border:none;
+  color:var(--muted);
+  padding:8px 16px;
+  border-radius:6px;
+  cursor:pointer;
+  transition:.15s;
+}
+.tab.active{background:var(--surface-2);color:var(--text);}
+.tab:focus-visible{outline:2px solid var(--warm);outline-offset:2px;}
+
+.panel{display:none;}
+.panel.active{display:block;}
+
+/* ---------- type select ---------- */
+.type-select{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:22px;}
+.type-card{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:14px 12px;
+  text-align:left;
+  cursor:pointer;
+  color:var(--text);
+  font-family:'Inter',sans-serif;
+  transition:.15s;
+}
+.type-card .t-label{font-family:'Oswald',sans-serif;font-size:15px;text-transform:uppercase;letter-spacing:.02em;display:block;margin-bottom:3px;}
+.type-card .t-sub{font-size:12px;color:var(--muted);}
+.type-card[data-type="image"]{border-top:3px solid var(--warm);}
+.type-card[data-type="olv"]{border-top:3px solid var(--cool);}
+.type-card[data-type="tv"]{border-top:3px solid var(--bcast);}
+.type-card.active[data-type="image"]{background:var(--warm-dim);box-shadow:inset 0 0 0 1px var(--warm);}
+.type-card.active[data-type="olv"]{background:var(--cool-dim);box-shadow:inset 0 0 0 1px var(--cool);}
+.type-card.active[data-type="tv"]{background:var(--bcast-dim);box-shadow:inset 0 0 0 1px var(--bcast);}
+
+/* ---------- constructor grid ---------- */
+.constructor-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:18px;align-items:start;}
+@media (max-width:760px){
+  .constructor-grid{grid-template-columns:1fr;}
+  .type-select{grid-template-columns:1fr;}
+}
+
+.group{margin-bottom:16px;}
+.group-label{
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.07em;
+  color:var(--muted);
+  margin-bottom:7px;
+  display:block;
+}
+.chips{display:flex;flex-wrap:wrap;gap:6px;}
+.chip{
+  background:var(--surface);
+  border:1px solid var(--line);
+  color:var(--text);
+  font-size:12.5px;
+  padding:7px 11px;
+  border-radius:999px;
+  cursor:pointer;
+  transition:.12s;
+}
+.chip:hover{border-color:var(--muted);}
+.chip.sel{background:var(--surface-2);border-color:var(--text);}
+.chip:focus-visible{outline:2px solid var(--warm);outline-offset:1px;}
+
+.stepper{display:flex;align-items:center;gap:10px;}
+.stepper button{
+  width:30px;height:30px;border-radius:6px;border:1px solid var(--line);
+  background:var(--surface);color:var(--text);font-size:16px;cursor:pointer;
+}
+.stepper-val{font-family:'IBM Plex Mono',monospace;font-size:16px;min-width:18px;text-align:center;}
+
+/* ---------- result panel ---------- */
+.result{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:18px;
+  position:sticky;
+  top:18px;
+}
+.stage-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:12.5px;}
+.stage-name{width:96px;color:var(--muted);flex-shrink:0;}
+.stage-track{flex:1;height:7px;background:var(--surface-2);border-radius:4px;overflow:hidden;}
+.stage-fill{height:100%;border-radius:4px;transition:width .35s ease;}
+.stage-fill.preprod{background:var(--cool);}
+.stage-fill.production{background:var(--warm);}
+.stage-fill.postprod{background:var(--bcast);}
+.stage-val{width:74px;text-align:right;font-family:'IBM Plex Mono',monospace;color:var(--muted);flex-shrink:0;}
+
+.total-block{margin:18px 0 10px;padding-top:14px;border-top:1px solid var(--line);}
+.total-label{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+.total-number{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:34px;letter-spacing:.01em;}
+
+.tier-badge{
+  display:inline-block;margin-top:10px;
+  font-size:12px;padding:5px 10px;border-radius:6px;
+  background:var(--surface-2);color:var(--text);border:1px solid var(--line);
+}
+.explain{font-size:13px;color:var(--muted);margin-top:12px;line-height:1.5;}
+.explain b{color:var(--text);font-weight:600;}
+
+/* ---------- quiz ---------- */
+.quiz-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
+.filmstrip{display:flex;gap:5px;}
+.sprocket{
+  width:16px;height:16px;border-radius:3px;background:var(--surface-2);border:1px solid var(--line);
+}
+.sprocket.done{background:var(--cool);border-color:var(--cool);}
+.sprocket.current{background:var(--warm);border-color:var(--warm);}
+.score{font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--muted);}
+.score span{color:var(--text);font-weight:600;}
+
+.q-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;}
+.q-text{font-family:'Oswald',sans-serif;font-size:18px;line-height:1.35;margin-bottom:16px;text-transform:none;}
+.q-options{display:flex;flex-direction:column;gap:8px;}
+.q-opt{
+  text-align:left;
+  background:var(--surface-2);border:1px solid var(--line);color:var(--text);
+  padding:11px 14px;border-radius:8px;font-size:14px;cursor:pointer;font-family:'Inter',sans-serif;
+}
+.q-opt:hover{border-color:var(--muted);}
+.q-opt.correct{border-color:var(--cool);background:var(--cool-dim);}
+.q-opt.wrong{border-color:var(--bcast);background:var(--bcast-dim);}
+.q-opt:disabled{cursor:default;}
+.q-explain{margin-top:14px;font-size:13.5px;color:var(--muted);line-height:1.5;display:none;}
+.q-explain.show{display:block;}
+.q-next{
+  margin-top:16px;background:var(--warm);color:#1a1409;border:none;padding:10px 18px;
+  border-radius:7px;font-family:'Oswald',sans-serif;letter-spacing:.03em;text-transform:uppercase;
+  font-size:13px;cursor:pointer;display:none;
+}
+.q-next.show{display:inline-block;}
+
+.q-end{text-align:center;padding:30px 10px;}
+.q-end .big{font-family:'IBM Plex Mono',monospace;font-size:42px;font-weight:600;}
+.q-end p{color:var(--muted);max-width:440px;margin:14px auto 0;line-height:1.5;font-size:14px;}
+.q-restart{
+  margin-top:18px;background:var(--surface-2);color:var(--text);border:1px solid var(--line);
+  padding:9px 16px;border-radius:7px;cursor:pointer;font-family:'Oswald',sans-serif;text-transform:uppercase;font-size:12.5px;
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <div class="brand">
+      <span class="brand-mark">● REC</span>
+      <h1>Конструктор бюджета</h1>
+    </div>
+    <nav class="tabs">
+      <button class="tab active" data-tab="constructor">Конструктор</button>
+      <button class="tab" data-tab="quiz">Квиз</button>
+    </nav>
+  </div>
+
+  <section id="panel-constructor" class="panel active">
+    <div class="type-select" id="typeSelect"></div>
+    <div class="constructor-grid">
+      <div class="params" id="paramsHost"></div>
+      <div class="result">
+        <div id="stageBars"></div>
+        <div class="total-block">
+          <div class="total-label">Итого под ключ</div>
+          <div class="total-number" id="totalNumber">0 ₽</div>
+        </div>
+        <div class="tier-badge" id="tierBadge"></div>
+        <div class="explain" id="explainText"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="panel-quiz" class="panel">
+    <div class="quiz-top">
+      <div class="filmstrip" id="filmstrip"></div>
+      <div class="score">Очки: <span id="scoreVal">0</span>/8</div>
+    </div>
+    <div id="quizBody"></div>
+  </section>
+
+</div>
+
+<script>
+/* =========================================================
+   PRICING — отредактируйте эти числа на ваши реальные ставки.
+   Структура расчёта ниже менять не нужно.
+   ========================================================= */
+const PRICING = {
+  preprodBase:    { image: 80000,  olv: 50000,  tv: 100000 },
+  casting:        { none: 0, few: 40000, extras: 90000, name: 250000 },
+  locations:      { studio: 20000, one: 40000, multi: 90000, complex: 180000 },
+  teamDayRate:    { compact: 150000, medium: 300000, large: 600000 },
+  graphics:       { minimal: 30000, medium: 150000, complex: 500000 },
+  soundColorBase: { image: 40000, olv: 30000, tv: 70000 },
+  versions:       { v1: 0, v35: 60000, v6: 140000 },
+  durationAdd:    { '15': 0, '30': 10000, '60': 25000, '90': 45000 },
+  rushMultiplier: 1.2
+};
+
+const RANGES = {
+  image: [300000, 3000000],
+  olv:   [150000, 1500000],
+  tv:    [400000, 10000000]
+};
+
+// ТВ требует более опытной команды и более высокого технического качества
+// (broadcast-стандарты), поэтому смены и графика для ТВ дороже на ту же
+// конфигурацию параметров, чем для image/OLV.
+const TV_PREMIUM = 1.7;
+function typePremium(t){ return t === 'tv' ? TV_PREMIUM : 1; }
+
+const TYPE_LABELS = { image: 'Имиджевое', olv: 'OLV', tv: 'ТВ-ролик' };
+
+const PARAM_GROUPS = [
+  { id:'duration', label:'Хронометраж', kind:'chips', default:'30',
+    options:[{k:'15',l:'15 сек'},{k:'30',l:'30 сек'},{k:'60',l:'60 сек'},{k:'90',l:'90 сек+'}] },
+  { id:'days', label:'Съёмочные смены', kind:'stepper', min:1, max:5, default:1 },
+  { id:'team', label:'Команда', kind:'chips', default:'compact',
+    options:[{k:'compact',l:'Компактная (3–4 чел)'},{k:'medium',l:'Средняя (5–8 чел)'},{k:'large',l:'Расширенная (9+ чел)'}] },
+  { id:'locations', label:'Локации', kind:'chips', default:'studio',
+    options:[{k:'studio',l:'Студия'},{k:'one',l:'1 выездная'},{k:'multi',l:'2–3 локации'},{k:'complex',l:'Сложная логистика'}] },
+  { id:'actors', label:'Актёры', kind:'chips', default:'none',
+    options:[{k:'none',l:'Без актёров'},{k:'few',l:'1–2 актёра'},{k:'extras',l:'Кастинг + массовка'},{k:'name',l:'Актёр с именем'}] },
+  { id:'graphics', label:'Графика / VFX', kind:'chips', default:'minimal',
+    options:[{k:'minimal',l:'Минимальная (титры)'},{k:'medium',l:'Средняя (моушн, цветокор)'},{k:'complex',l:'Сложная (3D / VFX)'}] },
+  { id:'versions', label:'Версии / адаптации', kind:'chips', default:'v1',
+    options:[{k:'v1',l:'1 версия'},{k:'v35',l:'3–5 версий'},{k:'v6',l:'6+ версий'}] },
+  { id:'rush', label:'График', kind:'chips', default:'standard',
+    options:[{k:'standard',l:'Стандартный'},{k:'rush',l:'Срочный (+20%)'}] }
+];
+
+let state = { type:'image' };
+PARAM_GROUPS.forEach(g => state[g.id] = g.default);
+
+function fmt(n){ return Math.round(n).toLocaleString('ru-RU') + ' ₽'; }
+
+function compute(){
+  const t = state.type;
+  const premium = typePremium(t);
+  const preprod = PRICING.preprodBase[t] + PRICING.casting[state.actors] + PRICING.locations[state.locations];
+  const production = PRICING.teamDayRate[state.team] * state.days * premium;
+  const graphicsCost = PRICING.graphics[state.graphics] * premium;
+  const postprod = graphicsCost + PRICING.soundColorBase[t] + PRICING.versions[state.versions] + PRICING.durationAdd[state.duration];
+  const subtotal = preprod + production + postprod;
+  const rushMult = state.rush === 'rush' ? PRICING.rushMultiplier : 1;
+  const total = subtotal * rushMult;
+
+  const drivers = [
+    { label:'Концепция и подготовка', value: PRICING.preprodBase[t] },
+    { label:'Кастинг / актёры', value: PRICING.casting[state.actors] },
+    { label:'Локации и логистика', value: PRICING.locations[state.locations] },
+    { label:'Смены и состав команды', value: production },
+    { label:'Графика / VFX', value: graphicsCost },
+    { label:'Звук и цветокоррекция', value: PRICING.soundColorBase[t] },
+    { label:'Версии и адаптации', value: PRICING.versions[state.versions] }
+  ];
+  drivers.sort((a,b)=>b.value-a.value);
+
+  return { preprod, production, postprod, total, top: drivers[0] };
+}
+
+function tierLabel(t, total){
+  if (t === 'tv'){
+    if (total < 400000) return 'ниже типичного рынка — проверьте, не упущена ли часть работы';
+    if (total < 1000000) return 'простой ТВ-ролик (графика + закадровый текст)';
+    if (total < 2000000) return 'средний уровень сложности — для постановки с актёром этого обычно мало';
+    if (total <= 10000000) return 'сложный ТВ-ролик с постановкой — рыночный ориентир от 2 млн ₽';
+    return 'премиальный сегмент — мультирегиональная съёмка, звёздный кастинг и т.п.';
+  }
+  const [lo, hi] = RANGES[t];
+  if (total < lo*0.8) return 'ниже типичного рынка — проверьте, не упущена ли часть работы';
+  if (total <= lo*1.3) return 'нижняя граница диапазона для этого типа';
+  if (total <= lo + (hi-lo)*0.55) return 'средний бюджет для этого типа';
+  if (total <= hi) return 'премиум-сегмент для этого типа';
+  return 'выше типичного диапазона — обычно редкий кейс (звёздный кастинг, мультирегиональная съёмка и т.п.)';
+}
+
+function renderTypeSelect(){
+  const host = document.getElementById('typeSelect');
+  const subs = {
+    image:'Узнаваемость и эмоция бренда',
+    olv:'Digital-кампания, таргет',
+    tv:'Эфир, широкий охват'
+  };
+  host.innerHTML = Object.keys(TYPE_LABELS).map(k => `
+    <button class="type-card ${state.type===k?'active':''}" data-type="${k}">
+      <span class="t-label">${TYPE_LABELS[k]}</span>
+      <span class="t-sub">${subs[k]}</span>
+    </button>`).join('');
+  host.querySelectorAll('.type-card').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ state.type = btn.dataset.type; renderAll(); });
+  });
+}
+
+function renderParams(){
+  const host = document.getElementById('paramsHost');
+  host.innerHTML = PARAM_GROUPS.map(g=>{
+    if (g.kind === 'chips'){
+      return `<div class="group">
+        <span class="group-label">${g.label}</span>
+        <div class="chips" data-group="${g.id}">
+          ${g.options.map(o=>`<button class="chip ${state[g.id]===o.k?'sel':''}" data-key="${o.k}">${o.l}</button>`).join('')}
+        </div>
+      </div>`;
+    }
+    if (g.kind === 'stepper'){
+      return `<div class="group">
+        <span class="group-label">${g.label}</span>
+        <div class="stepper" data-group="${g.id}">
+          <button data-act="dec" aria-label="Меньше">−</button>
+          <span class="stepper-val">${state[g.id]}</span>
+          <button data-act="inc" aria-label="Больше">+</button>
+        </div>
+      </div>`;
+    }
+  }).join('');
+
+  host.querySelectorAll('[data-group]').forEach(el=>{
+    const gid = el.dataset.group;
+    const group = PARAM_GROUPS.find(g=>g.id===gid);
+    if (group.kind === 'chips'){
+      el.querySelectorAll('.chip').forEach(chip=>{
+        chip.addEventListener('click', ()=>{ state[gid] = chip.dataset.key; renderAll(); });
+      });
+    } else {
+      el.querySelectorAll('button').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const delta = btn.dataset.act === 'inc' ? 1 : -1;
+          state[gid] = Math.min(group.max, Math.max(group.min, state[gid] + delta));
+          renderAll();
+        });
+      });
+    }
+  });
+}
+
+let lastTotal = 0;
+function animateTotal(to){
+  const el = document.getElementById('totalNumber');
+  const from = lastTotal;
+  const dur = 380;
+  const start = performance.now();
+  function step(now){
+    const p = Math.min(1, (now-start)/dur);
+    const val = from + (to-from)*p;
+    el.textContent = fmt(val);
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+  lastTotal = to;
+}
+
+function renderResult(){
+  const r = compute();
+  const total = r.preprod + r.production + r.postprod;
+  const rushMult = state.rush === 'rush' ? PRICING.rushMultiplier : 1;
+  const finalTotal = total * rushMult;
+
+  const bars = [
+    { name:'Препродакшн', cls:'preprod', val:r.preprod },
+    { name:'Продакшн', cls:'production', val:r.production },
+    { name:'Постпродакшн', cls:'postprod', val:r.postprod }
+  ];
+  document.getElementById('stageBars').innerHTML = bars.map(b=>{
+    const pct = total ? Math.round((b.val/total)*100) : 0;
+    return `<div class="stage-row">
+      <span class="stage-name">${b.name}</span>
+      <span class="stage-track"><span class="stage-fill ${b.cls}" style="width:${pct}%"></span></span>
+      <span class="stage-val">${fmt(b.val*rushMult)}</span>
+    </div>`;
+  }).join('');
+
+  animateTotal(finalTotal);
+  document.getElementById('tierBadge').textContent = tierLabel(state.type, finalTotal);
+
+  const topValueAdjusted = r.top.value * rushMult;
+  const pctTop = Math.round((topValueAdjusted / finalTotal) * 100) || 0;
+  document.getElementById('explainText').innerHTML =
+    `Главный драйвер сметы сейчас — <b>${r.top.label}</b> (${fmt(topValueAdjusted)}, ≈${pctTop}% от итога).`;
+}
+
+function renderAll(){
+  renderTypeSelect();
+  renderParams();
+  renderResult();
+}
+
+/* ---------- tabs ---------- */
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-'+tab.dataset.tab).classList.add('active');
+  });
+});
+
+renderAll();
+
+/* =========================================================
+   QUIZ
+   ========================================================= */
+const QUIZ = [
+  { q:'Почему продакшн-бюджет ТВ-ролика обычно выше, чем у OLV-ролика похожей сложности?',
+    opts:['ТВ дороже из-за стоимости показа в эфире','ТВ требует более высокого технического качества, опытной команды и более долгого цикла согласований','Цена не отличается — это миф','Зависит только от хронометража'],
+    correct:1,
+    explain:'Речь именно о продакшне: broadcast-стандарты требуют более качественного света, звука и цветокоррекции, а согласования с заказчиком занимают больше времени — это и поднимает стоимость производства.' },
+  { q:'Какой тип видео обычно требует наибольшего количества версий и адаптаций под разные платформы?',
+    opts:['Имиджевое видео','OLV','ТВ-ролик','Все три одинаково'],
+    correct:1,
+    explain:'OLV почти всегда подразумевает пакет адаптаций под разные форматы кадра и хронометражи разных платформ.' },
+  { q:'Что чаще всего является крупнейшим рычагом бюджета съёмочного этапа?',
+    opts:['Цвет логотипа в кадре','Количество и состав съёмочных смен','Название проекта','Время года'],
+    correct:1,
+    explain:'Количество смен и размер команды — самый сильный и предсказуемый рычаг продакшн-бюджета.' },
+  { q:'Клиент просит «ролик для ТВ с актёром и компьютерной графикой» за 300 000 ₽. Это реалистично?',
+    opts:['Да, это стандартная цена','Нет — это нижняя планка для самого простого ТВ-ролика без актёров и графики','Да, если снять на телефон','Бюджет тут не имеет значения'],
+    correct:1,
+    explain:'300 000 ₽ — это диапазон для простой графики с закадровым текстом, без актёров и постановки. С актёром и графикой бюджет начинается заметно выше.' },
+  { q:'Сложный ТВ-ролик с актёром и развёрнутой графикой — какой ориентир по продакшн-бюджету на рынке Москвы в 2026 году?',
+    opts:['От 2 млн ₽ и выше','Всегда до 500 тыс ₽','Ровно 1 млн ₽ независимо от сложности','Бюджет не зависит от сложности'],
+    correct:0,
+    explain:'Сложный ТВ-ролик — с постановкой, актёрами и серьёзной графикой — это, как правило, продакшн от 2 млн ₽ и выше. Простая графика с закадровым текстом стоит в разы дешевле.' },
+  { q:'Какова основная задача имиджевого видео?',
+    opts:['Прямые продажи здесь и сейчас','Узнаваемость и эмоциональная связь с брендом','Соответствие требованиям эфира','Краткосрочный охват в таргете'],
+    correct:1,
+    explain:'Имиджевое видео работает на долгосрочную узнаваемость и эмоциональную связь, а не на немедленную конверсию.' },
+  { q:'Что сильнее повлияет на бюджет: увеличение хронометража с 30 до 60 секунд при том же объёме съёмок, или добавление второй съёмочной смены?',
+    opts:['Увеличение хронометража','Вторая смена','Это никогда не влияет на цену','Зависит только от актёров'],
+    correct:1,
+    explain:'Хронометраж сам по себе влияет в основном на монтаж. Вторая смена — это почти повторение стоимости команды и логистики за день, что обычно заметнее.' },
+  { q:'Почему два внешне похожих по сюжету ролика могут отличаться в цене в 2–3 раза?',
+    opts:['Один продакшн просто «жаднее»','Разное количество смен, локаций, состав команды и сложность графики','Курс доллара','Это никогда не объяснимо'],
+    correct:1,
+    explain:'Видимая «похожесть» сюжета не говорит о трудозатратах — решает то, что зритель не всегда замечает: смены, команда, локации, графика.' }
+];
+
+let quizIndex = 0;
+let score = 0;
+let answered = false;
+
+function renderFilmstrip(){
+  const host = document.getElementById('filmstrip');
+  host.innerHTML = QUIZ.map((_,i)=>{
+    let cls = '';
+    if (i < quizIndex) cls = 'done';
+    else if (i === quizIndex) cls = 'current';
+    return `<span class="sprocket ${cls}"></span>`;
+  }).join('');
+}
+
+function renderQuiz(){
+  renderFilmstrip();
+  document.getElementById('scoreVal').textContent = score;
+  const body = document.getElementById('quizBody');
+
+  if (quizIndex >= QUIZ.length){
+    let msg;
+    if (score >= 7) msg = 'Отличный результат — вы готовы объяснять смету клиенту без поддержки продюсера.';
+    else if (score >= 5) msg = 'Хорошая база. Стоит ещё раз пройтись по разделу «анатомия сметы» и про разницу OLV / ТВ.';
+    else msg = 'Имеет смысл вернуться к разделу «анатомия сметы» — там разобраны главные триггеры цены.';
+    body.innerHTML = `<div class="q-card q-end">
+      <div class="big">${score}/${QUIZ.length}</div>
+      <p>${msg}</p>
+      <button class="q-restart" id="restartBtn">Пройти ещё раз</button>
+    </div>`;
+    document.getElementById('restartBtn').addEventListener('click', ()=>{
+      quizIndex = 0; score = 0; answered = false; renderQuiz();
+    });
+    return;
+  }
+
+  const item = QUIZ[quizIndex];
+  answered = false;
+  body.innerHTML = `<div class="q-card">
+    <div class="q-text">${quizIndex+1}. ${item.q}</div>
+    <div class="q-options">
+      ${item.opts.map((o,i)=>`<button class="q-opt" data-i="${i}">${o}</button>`).join('')}
+    </div>
+    <div class="q-explain" id="qExplain">${item.explain}</div>
+    <button class="q-next" id="qNext">Далее</button>
+  </div>`;
+
+  body.querySelectorAll('.q-opt').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      if (answered) return;
+      answered = true;
+      const i = Number(btn.dataset.i);
+      const opts = body.querySelectorAll('.q-opt');
+      opts.forEach(o=>o.disabled = true);
+      if (i === item.correct){
+        btn.classList.add('correct');
+        score++;
+      } else {
+        btn.classList.add('wrong');
+        opts[item.correct].classList.add('correct');
+      }
+      document.getElementById('qExplain').classList.add('show');
+      document.getElementById('qNext').classList.add('show');
+      document.getElementById('scoreVal').textContent = score;
+    });
+  });
+
+  document.getElementById('qNext').addEventListener('click', ()=>{
+    quizIndex++;
+    renderQuiz();
+  });
+}
+
+renderQuiz();
+</script>
+</body>
+</html>
